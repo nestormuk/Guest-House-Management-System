@@ -27,6 +27,15 @@ public class RoomController {
         }
     }
 
+    public Room getRoomByNumber(String roomNumber) {
+        try (Session session = HibernateUtil.getSession().openSession()) {
+            return session.createQuery("FROM Room WHERE roomNumber = :roomNumber", Room.class)
+                    .setParameter("roomNumber", roomNumber)
+                    .uniqueResult();
+        }
+    }
+
+
     public Room getRoomById(UUID id) {
         try (Session session = HibernateUtil.getSession().openSession()) {
             return session.get(Room.class, id);
@@ -66,6 +75,35 @@ public class RoomController {
             return "Deletion failed";
         }
     }
+
+    public boolean isRoomAvailable(String roomNumber) {
+        try (Session session = HibernateUtil.getSession().openSession()) {
+            Room room = session.createQuery("FROM Room WHERE roomNumber = :roomNumber", Room.class)
+                    .setParameter("roomNumber", roomNumber)
+                    .uniqueResult();
+            return room != null && room.isAvailable();
+        }
+    }
+
+    public String updateRoomAvailability(String roomNumber, boolean availability) {
+        try (Session session = HibernateUtil.getSession().openSession()) {
+            Transaction transaction = session.beginTransaction();
+            Room room = session.createQuery("FROM Room WHERE roomNumber = :roomNumber", Room.class)
+                    .setParameter("roomNumber", roomNumber)
+                    .uniqueResult();
+            if (room != null) {
+                room.setAvailable(availability);
+                session.merge(room);
+                transaction.commit();
+                return "Room availability updated successfully";
+            }
+            return "Room not found";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Failed to update room availability";
+        }
+    }
+
 
 
 }

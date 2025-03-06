@@ -26,7 +26,7 @@ public class GuestTest {
         guestController = new GuestController();
         Guest guest = new Guest();
         guest.setName("Gadam Mahamat");
-        guest.setContact("0791019191");
+        guest.setEmail("0791019191");
         guest.setCheckIn(new Date());
         guest.setCheckOut(new Date(System.currentTimeMillis() + 86400000));
         guestController.saveGuest(guest);
@@ -51,7 +51,7 @@ public class GuestTest {
     void testSaveGuest() {
         Guest guest = new Guest();
         guest.setName("Jane Doe");
-        guest.setContact("0987654321");
+        guest.setEmail("0987654321");
         guest.setCheckIn(new Date());
         guest.setCheckOut(new Date(System.currentTimeMillis() + 172800000));
 
@@ -62,7 +62,7 @@ public class GuestTest {
     @Test
     void testUpdateGuest() {
         Guest guest = guestController.getGuestById(existingGuestId);
-        guest.setContact("1112223333");
+        guest.setEmail("1112223333");
 
         String result = guestController.updateGuest(guest);
         assertEquals("Updated successfully", result, "The updateGuest method should return 'Updated successfully'");
@@ -72,7 +72,7 @@ public class GuestTest {
     void testDeleteGuest() {
         Guest guest = new Guest();
         guest.setName("Mark Smith");
-        guest.setContact("5556667777");
+        guest.setEmail("5556667777");
         guest.setCheckIn(new Date());
         guest.setCheckOut(new Date(System.currentTimeMillis() + 259200000));
 

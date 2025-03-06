@@ -13,7 +13,8 @@ public class Guest {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private String name;
-    private String contact;
+    @Column(unique = true)
+    private String email;
     private Date checkIn;
     private Date checkOut;
 
@@ -23,9 +24,9 @@ public class Guest {
     public Guest() {
     }
 
-    public Guest(String name, String contact, Date checkIn, Date checkOut, List<Booking> bookings) {
+    public Guest(String name, String email, Date checkIn, Date checkOut, List<Booking> bookings) {
         this.name = name;
-        this.contact = contact;
+        this.email = email;
         this.checkIn = checkIn;
         this.checkOut = checkOut;
         this.bookings = bookings;
@@ -47,12 +48,12 @@ public class Guest {
         this.name = name;
     }
 
-    public String getContact() {
-        return contact;
+    public String getEmail() {
+        return email;
     }
 
-    public void setContact(String contact) {
-        this.contact = contact;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Date getCheckIn() {

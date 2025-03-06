@@ -22,6 +22,15 @@ public class GuestController {
         }
     }
 
+    public Guest getGuestByEmail(String email) {
+        try (Session session = HibernateUtil.getSession().openSession()) {
+            return session.createQuery("FROM Guest WHERE email = :email", Guest.class)
+                    .setParameter("email", email)
+                    .uniqueResult();
+        }
+    }
+
+
     public Guest getGuestById(UUID id) {
         try (Session session = HibernateUtil.getSession().openSession()) {
             return session.get(Guest.class, id);
