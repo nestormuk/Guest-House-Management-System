@@ -7,7 +7,7 @@ import controller.ConnectionController;
 import org.junit.jupiter.api.*;
 
 
-class HibernateUtilTest {
+class DatabaseConnectionTest {
 
     @Test
     public void test() {
