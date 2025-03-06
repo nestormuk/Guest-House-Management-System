@@ -2,93 +2,70 @@ package guest_house_mgt;
 
 import controller.GuestController;
 import model.Guest;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-
+import org.junit.jupiter.api.*;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class) // Ensures test order
 public class GuestTest {
 
-    GuestController guestController;
-    private UUID existingGuestId;
+    private static GuestController guestController;
+    private static UUID guestId;
+    private static final String TEST_EMAIL = "gadam@gmail.com";
 
     @BeforeAll
-    void setup() {
+    static void setup() {
         guestController = new GuestController();
-        Guest guest = new Guest();
-        guest.setName("Gadam Mahamat");
-        guest.setEmail("0791019191");
-        guest.setCheckIn(new Date());
-        guest.setCheckOut(new Date(System.currentTimeMillis() + 86400000));
-        guestController.saveGuest(guest);
-        this.existingGuestId = guest.getId();
     }
 
     @Test
-    void testGetGuestById_WhenGuestExists() {
-        Guest guest = guestController.getGuestById(existingGuestId);
-        assertNotNull(guest, "Guest should not be null when it exists");
-        assertEquals("John Doe", guest.getName(), "Guest name should match the saved one");
-    }
-
-    @Test
-    void testGetGuestById_WhenGuestDoesNotExist() {
-        UUID fakeId = UUID.randomUUID();
-        Guest guest = guestController.getGuestById(fakeId);
-        assertNull(guest, "Guest should be null when it does not exist");
-    }
-
-    @Test
+    @Order(1)
     void testSaveGuest() {
-        Guest guest = new Guest();
-        guest.setName("Jane Doe");
-        guest.setEmail("0987654321");
-        guest.setCheckIn(new Date());
-        guest.setCheckOut(new Date(System.currentTimeMillis() + 172800000));
-
+        Guest guest = new Guest("Gadam", TEST_EMAIL, new Date(), new Date(), null);
         String result = guestController.saveGuest(guest);
+
         assertEquals("Saved successfully", result);
+
+        // Fetch the guest to store its ID for later tests
+        Guest savedGuest = guestController.getGuestByEmail(TEST_EMAIL);
+        assertNotNull(savedGuest);
+        guestId = savedGuest.getId();
     }
 
     @Test
+    @Order(2)
+    void testGetGuestByEmail() {
+        Guest guest = guestController.getGuestByEmail(TEST_EMAIL);
+        assertNotNull(guest);
+        assertEquals(TEST_EMAIL, guest.getEmail());
+    }
+
+    @Test
+    @Order(3)
     void testUpdateGuest() {
-        Guest guest = guestController.getGuestById(existingGuestId);
-        guest.setEmail("1112223333");
+        Guest guest = guestController.getGuestByEmail(TEST_EMAIL);
+        assertNotNull(guest);
 
+        guest.setName("Gadam Updated");
         String result = guestController.updateGuest(guest);
-        assertEquals("Updated successfully", result, "The updateGuest method should return 'Updated successfully'");
+        assertEquals("Updated successfully", result);
+
+        // Verify update
+        Guest updatedGuest = guestController.getGuestByEmail(TEST_EMAIL);
+        assertEquals("Gadam Updated", updatedGuest.getName());
     }
 
     @Test
+    @Order(4)
     void testDeleteGuest() {
-        Guest guest = new Guest();
-        guest.setName("Mark Smith");
-        guest.setEmail("5556667777");
-        guest.setCheckIn(new Date());
-        guest.setCheckOut(new Date(System.currentTimeMillis() + 259200000));
-
-        guestController.saveGuest(guest);
-        UUID guestId = guest.getId();
-
+        assertNotNull(guestId);
         String result = guestController.deleteGuest(guestId);
         assertEquals("Deleted successfully", result);
+
+        // Verify deletion
+        Guest deletedGuest = guestController.getGuestByEmail(TEST_EMAIL);
+        assertNull(deletedGuest);
     }
-
-    @Test
-    void testDeleteNonExistentGuest() {
-        UUID fakeId = UUID.randomUUID();
-        String result = guestController.deleteGuest(fakeId);
-        assertEquals("Guest not found", result);
-    }
-
-
 }

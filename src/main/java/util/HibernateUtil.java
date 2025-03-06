@@ -19,8 +19,8 @@ public class HibernateUtil {
                 // PostgreSQL Database Configuration
                 properties.put(Environment.DRIVER, "org.postgresql.Driver");
                 properties.put(Environment.URL, "jdbc:postgresql://localhost:5432/GuestHouseManagement");
-                properties.put(Environment.USER, "Nestor");
-                properties.put(Environment.PASS, "N");
+                properties.put(Environment.USER, "Username");
+                properties.put(Environment.PASS, "password");
 
                 // Hibernate Settings
                 properties.put(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");

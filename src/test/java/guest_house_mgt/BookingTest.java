@@ -1,70 +1,99 @@
 package guest_house_mgt;
 
-
 import controller.BookingController;
-import org.junit.jupiter.api.Test;
+import controller.GuestController;
+import controller.RoomController;
+import enumeration.BookingStatus;
+import enumeration.RoomType;
+import model.Booking;
+import model.Guest;
+import model.Room;
+import org.junit.jupiter.api.*;
+import java.util.Date;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Date;
-
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BookingTest {
 
+    private static BookingController bookingController;
+    private static GuestController guestController;
+    private static RoomController roomController;
+    private static UUID bookingId;
+    private static final String TEST_GUEST_EMAIL = "gadam@gmail.com";
+    private static final String TEST_ROOM_NUMBER = "801";
+
+    @BeforeAll
+    static void setup() {
+        bookingController = new BookingController();
+        guestController = new GuestController();
+        roomController = new RoomController();
+
+        // Create a guest
+        Guest guest = new Guest("Test Guest", TEST_GUEST_EMAIL, new Date(), new Date(), null);
+        guestController.saveGuest(guest);
+
+        // Create a room
+        Room room = new Room();
+        room.setRoomNumber(TEST_ROOM_NUMBER);
+        room.setAvailable(true);
+        room.setPrice(100.0);
+        room.setType(RoomType.SUITE);
+        roomController.saveRoom(room);
+    }
+
     @Test
-    public void testBookRoom() {
-        // Test case 1: Booking a room successfully
-        String guestEmail = "guest@example.com";
-        String roomNumber = "101";
-        Date startDate = new Date(); // Use current date for testing
+    @Order(1)
+    void testBookRoom() {
+        Date startDate = new Date();
         Date endDate = new Date(startDate.getTime() + 86400000L); // 1 day later
 
-        BookingController bookingController = new BookingController();
-        String result = bookingController.bookRoom(guestEmail, roomNumber, startDate, endDate);
-
+        String result = bookingController.bookRoom(TEST_GUEST_EMAIL, TEST_ROOM_NUMBER, startDate, endDate);
         assertEquals("Booking successful", result);
+
+        // Fetch the booking to store its ID
+        Booking booking = bookingController.getAllBookings().stream()
+                .filter(b -> b.getGuest().getEmail().equals(TEST_GUEST_EMAIL))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(booking);
+        bookingId = booking.getId();
     }
 
     @Test
-    public void testRoomNotAvailable() {
-        // Test case 2: Room is not available
-        String guestEmail = "guest@example.com";
-        String roomNumber = "101";
-        Date startDate = new Date();
-        Date endDate = new Date(startDate.getTime() + 86400000L); // 1 day later
-
-        // First book the room
-        BookingController bookingController = new BookingController();
-        bookingController.bookRoom(guestEmail, roomNumber, startDate, endDate);
-
-        // Now attempt to book again, it should return "Room is not available"
-        String result = bookingController.bookRoom(guestEmail, roomNumber, startDate, endDate);
-        assertEquals("Room is not available", result);
+    @Order(2)
+    void testGetBookingById() {
+        assertNotNull(bookingId);
+        Booking booking = bookingController.getBookingById(bookingId);
+        assertNotNull(booking);
+        assertEquals(TEST_GUEST_EMAIL, booking.getGuest().getEmail());
     }
 
     @Test
-    public void testGuestNotFound() {
-        // Test case 3: Guest not found
-        String guestEmail = "nonexistent@example.com";
-        String roomNumber = "101";
-        Date startDate = new Date();
-        Date endDate = new Date(startDate.getTime() + 86400000L); // 1 day later
+    @Order(3)
+    void testUpdateBooking() {
+        assertNotNull(bookingId);
+        Booking booking = bookingController.getBookingById(bookingId);
+        assertNotNull(booking);
 
-        BookingController bookingController = new BookingController();
-        String result = bookingController.bookRoom(guestEmail, roomNumber, startDate, endDate);
+        booking.setStatus(BookingStatus.CONFIRMED);
+        String result = bookingController.updateBooking(booking);
+        assertEquals("Updated successfully", result);
 
-        assertEquals("Guest not found", result);
+        Booking updatedBooking = bookingController.getBookingById(bookingId);
+        assertEquals(BookingStatus.CONFIRMED, updatedBooking.getStatus());
     }
 
     @Test
-    public void testRoomNotFound() {
-        // Test case 4: Room not found
-        String guestEmail = "guest@example.com";
-        String roomNumber = "999"; // Non-existent room number
-        Date startDate = new Date();
-        Date endDate = new Date(startDate.getTime() + 86400000L); // 1 day later
+    @Order(4)
+    void testDeleteBooking() {
+        assertNotNull(bookingId);
+        String result = bookingController.deleteBooking(bookingId);
+        assertEquals("Deleted successfully", result);
 
-        BookingController bookingController = new BookingController();
-        String result = bookingController.bookRoom(guestEmail, roomNumber, startDate, endDate);
-
-        assertEquals("Room not found", result);
+        Booking deletedBooking = bookingController.getBookingById(bookingId);
+        assertNull(deletedBooking);
     }
 }

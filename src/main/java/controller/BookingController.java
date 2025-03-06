@@ -14,25 +14,18 @@ import java.util.UUID;
 
 public class BookingController {
 
+    private final GuestController guestController = new GuestController();
+    private final RoomController roomController = new RoomController();
+
     public String bookRoom(String guestEmail, String roomNumber, Date startDate, Date endDate) {
-        // Step 1: Find the guest by email
-        Guest guest = new GuestController().getGuestByEmail(guestEmail);
-        if (guest == null) {
-            return "Guest not found";
-        }
+        Guest guest = guestController.getGuestByEmail(guestEmail);
+        if (guest == null) return "Guest not found";
 
-        // Step 2: Find the room by room number
-        Room room = new RoomController().getRoomByNumber(roomNumber);
-        if (room == null) {
-            return "Room not found";
-        }
+        Room room = roomController.getRoomByNumber(roomNumber);
+        if (room == null) return "Room not found";
 
-        // Step 3: Check if the room is available
-        if (!new RoomController().isRoomAvailable(roomNumber)) {
-            return "Room is not available";
-        }
+        if (!room.isAvailable()) return "Room is not available";
 
-        // Step 4: Create the booking
         try (Session session = HibernateUtil.getSession().openSession()) {
             Transaction transaction = session.beginTransaction();
 
@@ -41,22 +34,21 @@ public class BookingController {
             booking.setRoom(room);
             booking.setStartDate(startDate);
             booking.setEndDate(endDate);
-            booking.setStatus(BookingStatus.PENDING); // Assuming status is pending for new bookings
+            booking.setStatus(BookingStatus.PENDING);
 
             session.persist(booking);
-            transaction.commit();
 
-            // Optionally, update room availability after booking
+            // Update room availability
             room.setAvailable(false);
-            new RoomController().updateRoomAvailability(roomNumber, false); // Update room to not available
+            session.merge(room);
 
+            transaction.commit();
             return "Booking successful";
         } catch (Exception e) {
             e.printStackTrace();
             return "Booking failed";
         }
     }
-
 
     public Booking getBookingById(UUID id) {
         try (Session session = HibernateUtil.getSession().openSession()) {
@@ -97,6 +89,4 @@ public class BookingController {
             return "Deletion failed";
         }
     }
-
-
 }

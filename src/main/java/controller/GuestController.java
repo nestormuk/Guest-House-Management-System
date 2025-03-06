@@ -31,11 +31,7 @@ public class GuestController {
     }
 
 
-    public Guest getGuestById(UUID id) {
-        try (Session session = HibernateUtil.getSession().openSession()) {
-            return session.get(Guest.class, id);
-        }
-    }
+
 
     public List<Guest> getAllGuests() {
         try (Session session = HibernateUtil.getSession().openSession()) {
